@@ -1,0 +1,158 @@
+security:
+  caCerts:
+    rootCA.pem: |
+      -----BEGIN CERTIFICATE-----
+      MIIEvjCCAyagAwIBAgIRALjSf/jPth9cxLg5IdlwLIwwDQYJKoZIhvcNAQELBQAw
+      dzEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMSYwJAYDVQQLDB1oZW1h
+      bnRoQGhlbWFudGgtTWFjQm9va0FpcjctMjEtMCsGA1UEAwwkbWtjZXJ0IGhlbWFu
+      dGhAaGVtYW50aC1NYWNCb29rQWlyNy0yMB4XDTI2MDkyOTE0MzU0OFoXDTM2MDky
+      OTE0MzU0OFowdzEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMSYwJAYD
+      VQQLDB1oZW1hbnRoQGhlbWFudGgtTWFjQm9va0FpcjctMjEtMCsGA1UEAwwkbWtj
+      ZXJ0IGhlbWFudGhAaGVtYW50aC1NYWNCb29rQWlyNy0yMIIBojANBgkqhkiG9w0B
+      AQEFAAOCAY8AMIIBigKCAYEAzNYqFukN0Rfcx1RdsxmdLgjyI1Gs1aYdC6f+mgNA
+      tiS/Ep6YsNz9ai0ceKQNGvdCZHdnRuLCWo3sH1TEzJTZpSTTMBl8kD+zQr++/uyn
+      1qNM9x6vCm680k/Co2u3+yv7oDaHoMd/A22JzBSERG1IP4RJo8md0X+G41dbxZym
+      NMqydE926dz2OLRHd+sWwiz0tcnschYyJFG7Zh7tvwti3IG2Qzsa0DxzifUofAWi
+      0I3Sdyfuy6ZeipXBKLBvciwRcFXiTFC9Cj+9FBzVgpHcg2e2JUIfddC/HvRLOS3G
+      GY0qH5PIDQvgL1iBAXA3OivBMun6cVglP7yam8q2N02ErcnLFPA5w9YeABA8Fjvd
+      B3l7956Zv7t4BdcCq5Z2F0YiuXCvm8qCS2IgQhxRmA8WpXpdb5eg2MK/+yBWqvkM
+      w0Noug+ZR3BT02E9qjzvvc8dLP8RjxxoaWGMLkvfJ6KrxlKlCEJpow8xQAOpd+fQ
+      iJv8+6THiLtAEpn++8wq4krpAgMBAAGjRTBDMA4GA1UdDwEB/wQEAwICBDASBgNV
+      HRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBQmOohdJWoMJdSyi4eaBh+j895D+zAN
+      BgkqhkiG9w0BAQsFAAOCAYEAiZGDQjK+40NM4p5nNl6lalDU4QG3L8JvRhUl+Mei
+      MaRfBZU8FIjNH+X/yLwvkuLjWLiLcAEbYN/sE+sChX8nefk/mLKVIpNxd6G47Erh
+      8BF8g3D1hp4eZqph5ehNBjyUHjd6wfk+okTQZ90zW8Nj5JQBtpCmljQtXqZOcIiO
+      45xNgy0ekJz6nNYGlIslxPaGSz/cKvF+PIxZBBaFcw8LEaFbnyXM5xGG6H3CCe31
+      wgwY/AV8ZM2NoNC/tB9aCbwj1KKuGhTJbEil+eq6p8b8TO8J6KmSJuybRvV7KCtQ
+      gsTQJdu1Sqox7YPsV0dKnGmIqKU+1N/R5JbExa2r/mWMSsVtBBy63nvT42Xs9vnp
+      kowXCB4j60k1id2YcYK0PEcEEPTo85U67nefbYAVZZiv2AI2Z9NjsrPGcj866JEs
+      9Hzc2EVbSjGgOZO/2yLqqDXdBuOoL1XEuzCt0PmwCgoQ/5o5F1armEYz2cz9j5Wy
+      g0YYz1mfUr/e5MHWRUyeQOHN
+      -----END CERTIFICATE-----
+
+api:
+  properties:
+    databaseType: "H2"
+
+registry:
+  enabled: true
+  replicaCount: "1"
+  serviceType: "ClusterIP"
+
+dex:
+  config:
+    issuer: https://terrakube-api.minikube.net/dex
+
+    storage:
+      type: memory
+    web:
+      http: 0.0.0.0:5556
+      allowedOrigins: ['*']
+      skipApprovalScreen: true
+    oauth2:
+      responseTypes: ["code", "token", "id_token"]
+
+    connectors:
+    - type: ldap
+      name: OpenLDAP
+      id: ldap
+      config:
+        # The following configurations seem to work with OpenLDAP:
+        #
+        # 1) Plain LDAP, without TLS:
+        host: terrakube-openldap-service:1389
+        insecureNoSSL: true
+        #
+        # 2) LDAPS without certificate validation:
+        #host: localhost:636
+        #insecureNoSSL: false
+        #insecureSkipVerify: true
+        #
+        # 3) LDAPS with certificate validation:
+        #host: YOUR-HOSTNAME:636
+        #insecureNoSSL: false
+        #insecureSkipVerify: false
+        #rootCAData: 'CERT'
+        # ...where CERT="$( base64 -w 0 your-cert.crt )"
+
+        # This would normally be a read-only user.
+        bindDN: cn=admin,dc=example,dc=org
+        bindPW: admin
+
+        usernamePrompt: Email Address
+
+        userSearch:
+          baseDN: ou=users,dc=example,dc=org
+          filter: "(objectClass=person)"
+          username: mail
+          # "DN" (case sensitive) is a special attribute name. It indicates that
+          # this value should be taken from the entity's DN not an attribute on
+          # the entity.
+          idAttr: DN
+          emailAttr: mail
+          nameAttr: cn
+
+        groupSearch:
+          baseDN: ou=Groups,dc=example,dc=org
+          filter: "(objectClass=groupOfNames)"
+
+          userMatchers:
+            # A user is a member of a group when their DN matches
+            # the value of a "member" attribute on the group entity.
+          - userAttr: DN
+            groupAttr: member
+
+          # The group name should be the "cn" value.
+          nameAttr: cn
+
+    staticClients:
+    - id: example-app
+      redirectURIs:
+      - 'https://terrakube-ui.minikube.net'
+      - '/device/callback'
+      - 'http://localhost:10000/login'
+      - 'http://localhost:10001/login'
+      name: 'example-app'
+      public: true
+
+
+## Ingress properties
+ingress:
+  useTls: true
+  includeTlsHosts: true
+  ui:
+    enabled: true
+    domain: "terrakube-ui.minikube.net"
+    path: "/"
+    pathType: "Prefix"
+    tlsSecretName: tls-secret-ui-terrakube
+    ingressClassName: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/use-regex: "true"
+  api:
+    enabled: true
+    domain: "terrakube-api.minikube.net"
+    path: "/"
+    pathType: "Prefix"
+    tlsSecretName: tls-secret-api-terrakube
+    ingressClassName: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/proxy-set-headers: "terrakube/custom-headers"
+  registry:
+    enabled: true
+    domain: "terrakube-reg.minikube.net"
+    path: "/"
+    pathType: "Prefix"
+    tlsSecretName: tls-secret-reg-terrakube
+    ingressClassName: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/proxy-set-headers: "terrakube/custom-headers"
+  dex:
+    enabled: true
+    path: "/dex/"
+    pathType: "Prefix"
+    annotations:
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/proxy-set-headers: "terrakube/custom-headers"
